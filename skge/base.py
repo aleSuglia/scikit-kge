@@ -4,6 +4,7 @@ from collections import defaultdict
 from skge.param import Parameter, AdaGrad
 import timeit
 import pickle
+from skge.util import Progbar
 
 _cutoff = 30
 
@@ -131,19 +132,26 @@ class StochasticTrainer(object):
         batch_idx = np.arange(self.batch_size, len(xys), self.batch_size)
 
         for self.epoch in range(1, self.max_epochs + 1):
+            print("Starting epoch: {}".format(self.epoch))
             # shuffle training examples
             self._pre_epoch()
             shuffle(idx)
 
             # store epoch for callback
             self.epoch_start = timeit.default_timer()
-
+            
+            batches = np.split(idx, batch_idx)
+            progress = Progbar(len(batches))
+            
             # process mini-batches
-            for batch in np.split(idx, batch_idx):
+            for batch_id, batch in enumerate(batches):
                 # select indices for current batch
                 bxys = [xys[z] for z in batch]
                 self._process_batch(bxys)
-
+                if hasattr(self, "loss"):
+                    progress.update(batch_id, [("Loss", self.loss)])
+                elif hasattr(self, "nviolations"):
+                    progress.update(batch_id, [("Violations", self.nviolations)])
             # check callback function, if false return
             for f in self.post_epoch:
                 if not f(self):
