@@ -127,9 +127,9 @@ class StochasticTrainer(object):
         self.loss = 0
 
     def _optim(self, xys):
-        idx = np.arange(len(xys))
+        idx = np.arange(len(xys), dtype=np.int32)
         self.batch_size = np.ceil(len(xys) / self.nbatches)
-        batch_idx = np.arange(self.batch_size, len(xys), self.batch_size)
+        batch_idx = np.arange(self.batch_size, len(xys), self.batch_size, dtype=np.int32)
 
         for self.epoch in range(1, self.max_epochs + 1):
             print("Starting epoch: {}".format(self.epoch))
